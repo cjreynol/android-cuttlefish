@@ -48,3 +48,12 @@ git_override(
     commit = "62e8aa0e9935bb7db76ead9cc2c1804e4dd740b9",
     remote = "https://github.com/Databean/rules_lint.git",
 )
+
+# perfetto
+# https://github.com/google/perfetto
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+git_repository(
+    name = "perfetto",
+    remote = "https://github.com/google/perfetto.git",
+    tag = "v48.1"
+)

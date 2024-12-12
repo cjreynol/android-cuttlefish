@@ -33,6 +33,7 @@ cc_library(
         "@fmt",
         "@gflags",
         "@jsoncpp",
+        "@perfetto", # TODO CJR: trying to add the new dependency
     ],
 )
 
