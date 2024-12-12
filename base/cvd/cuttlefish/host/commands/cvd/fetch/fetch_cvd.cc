@@ -28,6 +28,7 @@
 #include <android-base/logging.h>
 #include <android-base/strings.h>
 #include <curl/curl.h>
+#include <perfetto.h>
 #include <sparse/sparse.h>
 
 #include "common/libs/utils/archive.h"
@@ -53,6 +54,10 @@
 
 namespace cuttlefish {
 namespace {
+
+// TODO CJR: testing example
+PERFETTO_DEFINE_CATEGORIES(perfetto::Category("testing").SetDescription("testing perfetto"));
+PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
 constexpr mode_t kRwxAllMode = S_IRWXU | S_IRWXG | S_IRWXO;
 constexpr bool kOverrideEntries = true;
@@ -921,6 +926,13 @@ std::string GetFetchLogsFileName(const std::string& target_directory) {
 }
 
 Result<void> FetchCvdMain(int argc, char** argv) {
+  // TODO CJR: test example
+  perfetto::TracingInitArgs args;
+  args.backends |= perfetto::kInProcessBackend;
+  perfetto::Tracing::Initialize(args);
+  perfetto::TrackEvent::Register();
+  TRACE_EVENT("testing", "test event");
+
   android::base::InitLogging(argv, android::base::StderrLogger);
   const FetchFlags flags = CF_EXPECT(GetFlagValues(argc, argv));
   const bool append_subdirectory = ShouldAppendSubdirectory(flags);

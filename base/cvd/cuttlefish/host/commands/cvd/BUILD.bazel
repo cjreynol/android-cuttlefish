@@ -263,6 +263,7 @@ cc_library(
         "@fmt",
         "@gflags",
         "@jsoncpp",
+        "@perfetto",
         "@protobuf",
         "@protobuf//:json_util",
         "@protobuf//:protobuf_lite",
