@@ -52,6 +52,7 @@ bool IsDirectoryEmpty(const std::string& path);
 Result<void> RecursivelyRemoveDirectory(const std::string& path);
 bool Copy(const std::string& from, const std::string& to);
 off_t FileSize(const std::string& path);
+// TODO(chadreynolds): convert to `Result<void>` return
 bool RemoveFile(const std::string& file);
 Result<std::string> RenameFile(const std::string& current_filepath,
                                const std::string& target_filepath);
