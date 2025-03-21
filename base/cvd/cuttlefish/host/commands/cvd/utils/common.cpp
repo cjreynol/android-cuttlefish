@@ -61,7 +61,7 @@ Result<std::string> AndroidHostPath(const cvd_common::Envs& envs) {
     return it->second;
   }
   auto current_dir = CurrentDirectory();
-  CF_EXPECT(IsValidAndroidHostOutPath(current_dir));
+  CF_EXPECT(IsValidAndroidHostOutPath(current_dir), "Unable to find a valid host tool directory.");
   return current_dir;
 }
 
