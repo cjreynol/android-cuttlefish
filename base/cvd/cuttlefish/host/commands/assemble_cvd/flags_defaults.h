@@ -19,6 +19,9 @@
 #include "host/libs/config/config_constants.h"
 #include "host/libs/config/config_utils.h"
 
+// https://cs.android.com/android/platform/superproject/main/+/main:device/google/cuttlefish/Android.bp;l=122;drc=6f7d6a4db58efcc2ddd09eda07e009c6329414cd
+#define USERDATA_FILE_SYSTEM_TYPE "f2fs"
+
 #define CF_DEFAULTS_DYNAMIC_STRING ""
 #define CF_DEFAULTS_DYNAMIC_INT 0
 
