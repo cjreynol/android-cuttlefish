@@ -42,15 +42,13 @@
 #include "cuttlefish/host/libs/command_util/runner/defs.h"
 #include "cuttlefish/host/libs/command_util/util.h"
 #include "cuttlefish/host/libs/config/feature.h"
+#include "host/commands/run_cvd/run_cvd_flags.h"
 
 using grpc::ClientContext;
 using openwrtcontrolserver::LuciRpcReply;
 using openwrtcontrolserver::LuciRpcRequest;
 using openwrtcontrolserver::OpenwrtControlService;
 using openwrtcontrolserver::OpenwrtIpaddrReply;
-
-DEFINE_int32(reboot_notification_fd, CF_DEFAULTS_REBOOT_NOTIFICATION_FD,
-             "A file descriptor to notify when boot completes.");
 
 namespace cuttlefish {
 namespace {
