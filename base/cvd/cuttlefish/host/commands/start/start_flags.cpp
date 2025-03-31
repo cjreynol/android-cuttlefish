@@ -20,8 +20,10 @@
 
 #include "host/commands/assemble_cvd/flags_defaults.h"
 
+// TODO CJR - dupe
 DEFINE_int32(num_instances, CF_DEFAULTS_NUM_INSTANCES,
              "Number of Android guests to launch");
+// TODO CJR - dupe
 DEFINE_string(report_anonymous_usage_stats,
               CF_DEFAULTS_REPORT_ANONYMOUS_USAGE_STATS,
               "Report anonymous usage "
@@ -30,6 +32,7 @@ DEFINE_int32(
     base_instance_num, CF_DEFAULTS_BASE_INSTANCE_NUM,
     "The instance number of the device created. When `-num_instances N`"
     " is used, N instance numbers are claimed starting at this number.");
+// TODO CJR - dupe
 DEFINE_string(instance_nums, CF_DEFAULTS_INSTANCE_NUMS,
               "A comma-separated list of instance numbers "
               "to use. Mutually exclusive with base_instance_num.");
@@ -39,8 +42,10 @@ DEFINE_string(verbosity, CF_DEFAULTS_VERBOSITY,
 DEFINE_string(file_verbosity, CF_DEFAULTS_FILE_VERBOSITY,
               "Log file logging verbosity. Options are VERBOSE,DEBUG,INFO,"
               "WARNING,ERROR");
+// TODO CJR - dupe
 DEFINE_bool(use_overlay, CF_DEFAULTS_USE_OVERLAY,
             "Capture disk writes an overlay. This is a "
             "prerequisite for powerwash_cvd or multiple instances.");
+// TODO CJR - dupe
 DEFINE_bool(track_host_tools_crc, CF_DEFAULTS_TRACK_HOST_TOOLS_CRC,
             "Track changes to host executables");

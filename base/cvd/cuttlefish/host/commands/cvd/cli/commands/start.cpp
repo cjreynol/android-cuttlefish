@@ -46,6 +46,7 @@
 #include "cuttlefish/common/libs/utils/result.h"
 #include "cuttlefish/common/libs/utils/subprocess.h"
 #include "cuttlefish/common/libs/utils/users.h"
+#include "cuttlefish/host/commands/assemble_cvd/assemble_cvd_flags.h"
 #include "cuttlefish/host/commands/cvd/cli/command_request.h"
 #include "cuttlefish/host/commands/cvd/cli/commands/command_handler.h"
 #include "cuttlefish/host/commands/cvd/cli/commands/host_tool_target.h"
@@ -64,6 +65,8 @@
 #include "cuttlefish/host/commands/cvd/utils/common.h"
 #include "cuttlefish/host/commands/cvd/utils/interrupt_listener.h"
 #include "cuttlefish/host/commands/cvd/utils/subprocess_waiter.h"
+#include "cuttlefish/host/commands/run_cvd/run_cvd_flags.h"
+#include "cuttlefish/host/commands/start/start_flags.h"
 #include "cuttlefish/host/libs/config/config_constants.h"
 #include "cuttlefish/host/libs/config/cuttlefish_config.h"
 
@@ -530,16 +533,30 @@ Result<void> CvdStartCommandHandler::Handle(const CommandRequest& request) {
   const bool is_help = CF_EXPECT(HasHelpFlag(subcmd_args));
 
   if (is_help) {
-    auto android_host_out = CF_EXPECT(AndroidHostPath(envs));
-    const auto bin = CF_EXPECT(FindStartBin(android_host_out));
+    // TODO: CJR - replace with new flag info
+    //auto android_host_out = CF_EXPECT(AndroidHostPath(envs));
+    //const auto bin = CF_EXPECT(FindStartBin(android_host_out));
 
-    Command command =
-        CF_EXPECT(ConstructCvdHelpCommand(bin, envs, subcmd_args, request));
-    ShowLaunchCommand(command, envs);
+    //Command command =
+    //    CF_EXPECT(ConstructCvdHelpCommand(bin, envs, subcmd_args, request));
+    //ShowLaunchCommand(command, envs);
 
-    siginfo_t infop;  // NOLINT(misc-include-cleaner)
-    command.Start().Wait(&infop, WEXITED);
-    CF_EXPECT(CheckProcessExitedNormally(infop));
+    //siginfo_t infop;
+    //command.Start().Wait(&infop, WEXITED);
+    //CF_EXPECT(CheckProcessExitedNormally(infop));
+
+    char kArgv0[] = "cvd";
+    char kArgv1[] = "start";
+    std::vector<char*> args {kArgv0, kArgv1};
+
+    for (auto& subcmd_arg : subcmd_args) {
+      args.emplace_back(subcmd_arg.data());
+    }
+
+    int argc = static_cast<int>(args.size());
+    char** argv = args.data();
+    gflags::ParseCommandLineFlags(&argc, &argv, false);
+
     return {};
   }
 
