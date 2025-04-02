@@ -112,7 +112,7 @@ func TestInstance(t *testing.T) {
 }
 
 func uploadImages(srv hoclient.HostOrchestratorService, remoteDir, imgsZipSrc string) error {
-	outDir := "/tmp/aosp_cf_x86_64_phone-img-12198634"
+	outDir := "/tmp/aosp_cf_x86_64_only_phone-img-13263448"
 	if err := runCmd("unzip", "-d", outDir, imgsZipSrc); err != nil {
 		return err
 	}

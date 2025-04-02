@@ -114,8 +114,8 @@ func CVDLogsDir(ctx hoexec.ExecContext, groupName, name string) (string, error) 
 
 const (
 	// TODO(b/267525748): Make these values configurable.
-	mainBuildDefaultBranch = "aosp-main"
-	mainBuildDefaultTarget = "aosp_cf_x86_64_phone-trunk_staging-userdebug"
+	mainBuildDefaultBranch = "aosp-android-latest-release"
+	mainBuildDefaultTarget = "aosp_cf_x86_64_only_phone-userdebug"
 )
 
 func defaultMainBuild() *apiv1.AndroidCIBuild {
