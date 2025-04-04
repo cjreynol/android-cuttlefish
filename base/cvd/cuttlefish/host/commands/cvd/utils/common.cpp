@@ -31,6 +31,8 @@ namespace cuttlefish {
 
 namespace {
 
+// TODO CJR - consider where to move this in `common/libs/utils`
+//    copying for testing
 bool IsValidAndroidHostOutPath(const std::string& path) {
   std::string start_bin_path = path + "/bin/cvd_internal_start";
   return FileExists(start_bin_path);
