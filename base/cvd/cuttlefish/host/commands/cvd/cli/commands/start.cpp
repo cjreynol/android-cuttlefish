@@ -531,6 +531,7 @@ Result<void> CvdStartCommandHandler::Handle(const CommandRequest& request) {
 
   if (is_help) {
     auto android_host_out = CF_EXPECT(AndroidHostPath(envs), "\nTry running this command from the same directory as the downloaded or fetched host tools.");
+    LOG(WARNING) << "TODO CJR cvd start ANDROID_HOST_OUT=" << android_host_out;
     const auto bin = CF_EXPECT(FindStartBin(android_host_out));
 
     Command command =

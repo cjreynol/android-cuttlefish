@@ -30,6 +30,7 @@
 #include "common/libs/fs/shared_buf.h"
 #include "common/libs/fs/shared_fd.h"
 #include "common/libs/utils/contains.h"
+#include "common/libs/utils/environment.h"
 #include "common/libs/utils/subprocess.h"
 
 namespace cuttlefish {
@@ -245,6 +246,13 @@ FlagForwarder::FlagForwarder(std::set<std::string> subprocesses,
   for (const auto& subprocess : subprocesses_) {
     Command cmd(subprocess);
     cmd.AddParameter("--helpxml");
+    for (const std::string& env_var : {"HOME", "ANDROID_HOST_OUT"}) {
+      std::optional<std::string> env_value = StringFromEnv(env_var);
+      if (env_value) {
+        LOG(WARNING) << "TODO CJR flag_forwarder " << env_var << "=" << *env_value;
+        cmd.AddEnvironmentVariable(env_var, *env_value);
+      }
+    }
 
     if (subprocess_index < args.size()) {
       for (auto arg : args[subprocess_index]) {

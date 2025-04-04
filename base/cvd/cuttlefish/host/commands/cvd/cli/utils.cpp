@@ -65,6 +65,12 @@ Result<Command> ConstructCommand(const ConstructCommandParam& param) {
     }
   }
   for (auto& it : param.envs) {
+    if (it.first == "HOME") {
+      LOG(WARNING) << "TODO CJR ConstructCommand env setting: " << it.first << "=" << it.second;
+    }
+    if (it.first == "ANDROID_HOST_OUT") {
+      LOG(WARNING) << "TODO CJR ConstructCommand env setting: " << it.first << "=" << it.second;
+    }
     command.UnsetFromEnvironment(it.first);
     command.AddEnvironmentVariable(it.first, it.second);
   }
@@ -88,9 +94,12 @@ Result<Command> ConstructCvdHelpCommand(
   cvd_common::Envs envs_copy{envs};
   envs_copy["HOME"] = AbsolutePath(home);
   auto android_host_out = CF_EXPECT(AndroidHostPath(envs));
+  LOG(WARNING) << "TODO CJR cvd start utils ANDROID_HOST_OUT=" << android_host_out;
   const auto bin_path = android_host_out + "/bin/" + bin_file;
   envs[kAndroidHostOut] = android_host_out;
+  envs_copy[kAndroidHostOut] = android_host_out;
   envs[kAndroidSoongHostOut] = android_host_out;
+  envs_copy[kAndroidSoongHostOut] = android_host_out;
   ConstructCommandParam construct_cmd_param{.bin_path = bin_path,
                                             .home = home,
                                             .args = subcmd_args,
