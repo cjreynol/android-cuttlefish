@@ -40,6 +40,7 @@ Overload(Ts...) -> Overload<Ts...>;
 // server
 static constexpr char kCvdMarkEnv[] = "_STARTED_BY_CVD_SERVER_";
 
+// TODO CJR - move these to environment.h and then replace usages of the strings
 constexpr char kServerExecPath[] = "/proc/self/exe";
 
 // The name of environment variable that points to the host out directory

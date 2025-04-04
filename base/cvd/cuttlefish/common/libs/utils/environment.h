@@ -20,6 +20,13 @@
 
 namespace cuttlefish {
 
+// TODO CJR - move environment variable constants here
+//  so that if we want to remove all usages there is a compilation connection
+// TODO CJR - consider moving some of the `host/libs/config/config_utils.h/cpp`
+//  helpers here, like `DefaultHostArtifactsPath`
+// or maybe I move `IsValidHostOutArtifactsPath` and `GetHostToolPath` from
+//  `.../start/main.cc` to that file as a good middle-ground dependency
+
 std::optional<std::string> StringFromEnv(const std::string& varname);
 
 std::string StringFromEnv(const std::string& varname,

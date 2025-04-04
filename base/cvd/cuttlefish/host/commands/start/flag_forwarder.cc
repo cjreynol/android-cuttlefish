@@ -246,11 +246,11 @@ FlagForwarder::FlagForwarder(std::set<std::string> subprocesses,
   for (const auto& subprocess : subprocesses_) {
     Command cmd(subprocess);
     cmd.AddParameter("--helpxml");
-    for (const std::string& env_var : {"HOME", "ANDROID_HOST_OUT"}) {
-      std::optional<std::string> env_value = StringFromEnv(env_var);
-      if (env_value) {
-        cmd.AddEnvironmentVariable(env_var, *env_value);
-      }
+    //  set by `cvd` in some cases when it executes its internal binaries
+    //  assemble_cvd needs the host tools etc/ directory for flag information
+    std::optional<std::string> host_out = StringFromEnv("ANDROID_HOST_OUT");
+    if (host_out) {
+      cmd.AddEnvironmentVariable("ANDROID_HOST_OUT", *host_out);
     }
 
     if (subprocess_index < args.size()) {
