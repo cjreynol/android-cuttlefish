@@ -80,30 +80,26 @@ bool IsValidAndroidHostOutPath(const std::string& path) {
 std::string GetHostToolPath() {
   std::optional<std::string> home_path = StringFromEnv("HOME");
   if (home_path && IsValidAndroidHostOutPath(*home_path)) {
-    LOG(WARNING) << "TODO CJR " << "GetHostToolPath HOME return";
     return *home_path;
   }
   // TODO CJR - add `ANDROID_HOST_OUT` lookup
-  std::optional<std::string> host_out_path = StringFromEnv("ANDROID_HOST_OUT");
-  if (host_out_path) {
-    LOG(WARNING) << "TODO CJR " << "GetHostToolPath ANDROID_HOST_OUT=" << *host_out_path;
-  }
   std::string path = CurrentDirectory();
-  if (IsValidAndroidHostOutPath(path)){
-    LOG(WARNING) << "TODO CJR " << "GetHostToolPath cwd return";
+  if (IsValidAndroidHostOutPath(path)) {
     return path;
   }
   // fall back to previous behavior as the default
   path = android::base::GetExecutableDirectory();
   if (!IsValidAndroidHostOutPath(path)) {
-    LOG(WARNING) << "Could not find obvious host tool path from environment variables HOME, ANDROID_HOST_OUT, or the current working directory.  Falling back to executable directory at: " << path;
+    LOG(WARNING) << "Could not find obvious host tool path from environment "
+                    "variables HOME, ANDROID_HOST_OUT, or the current working "
+                    "directory.  Falling back to executable directory at: "
+                 << path;
   }
   return path;
 }
 
 std::string SubtoolPath(const std::string& subtool_base) {
   std::string host_tool_path = GetHostToolPath();
-  LOG(WARNING) << "TODO CJR " << host_tool_path;
   std::stringstream subtool_path_stream;
   subtool_path_stream << host_tool_path << "/bin/" << subtool_base;
   auto subtool_path = subtool_path_stream.str();

@@ -249,7 +249,6 @@ FlagForwarder::FlagForwarder(std::set<std::string> subprocesses,
     for (const std::string& env_var : {"HOME", "ANDROID_HOST_OUT"}) {
       std::optional<std::string> env_value = StringFromEnv(env_var);
       if (env_value) {
-        LOG(WARNING) << "TODO CJR flag_forwarder " << env_var << "=" << *env_value;
         cmd.AddEnvironmentVariable(env_var, *env_value);
       }
     }
