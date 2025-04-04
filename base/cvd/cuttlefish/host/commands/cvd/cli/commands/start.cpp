@@ -519,7 +519,7 @@ Result<void> CvdStartCommandHandler::Handle(const CommandRequest& request) {
 
     Command command =
         CF_EXPECT(ConstructCvdHelpCommand(bin, envs, subcmd_args, request));
-    LOG(INFO) << "launcher command: " << command;
+    LOG(INFO) << "help command: " << command;
 
     siginfo_t infop;  // NOLINT(misc-include-cleaner)
     command.Start().Wait(&infop, WEXITED);

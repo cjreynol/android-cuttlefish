@@ -78,11 +78,14 @@ bool IsValidAndroidHostOutPath(const std::string& path) {
 }
 
 std::string GetHostToolPath() {
-  std::optional<std::string> home_path = StringFromEnv("HOME");
-  if (home_path && IsValidAndroidHostOutPath(*home_path)) {
-    return *home_path;
+  std::optional<std::string> opt_path = StringFromEnv("ANDROID_HOST_OUT");
+  if (opt_path && IsValidAndroidHostOutPath(*opt_path)) {
+    return *opt_path;
   }
-  // TODO CJR - add `ANDROID_HOST_OUT` lookup
+  opt_path = StringFromEnv("HOME");
+  if (opt_path && IsValidAndroidHostOutPath(*opt_path)) {
+    return *opt_path;
+  }
   std::string path = CurrentDirectory();
   if (IsValidAndroidHostOutPath(path)) {
     return path;
