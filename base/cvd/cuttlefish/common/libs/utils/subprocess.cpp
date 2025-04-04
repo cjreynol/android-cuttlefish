@@ -46,6 +46,7 @@
 #include <android-base/strings.h>
 
 #include "common/libs/fs/shared_buf.h"
+#include "common/libs/utils/contains.h"
 #include "common/libs/utils/files.h"
 
 extern char** environ;
@@ -483,6 +484,21 @@ Subprocess Command::Start(SubprocessOptions options) const {
 }
 
 std::ostream& operator<<(std::ostream& out, const Command& command) {
+  // TODO CJR - move these and this set somewhere that can be shared
+  // (environment.h?)
+  std::vector<std::string> interesting_env_names{"HOME",
+                                                 "ANDROID_HOST_OUT",
+                                                 "ANDROID_SOONG_HOST_OUT",
+                                                 "ANDROID_PRODUCT_OUT",
+                                                 "CUTTLEFISH_CONFIG_FILE",
+                                                 "CUTTLEFISH_INSTANCE"};
+  for (const std::string& env_var : command.env_) {
+    std::vector<std::string> env_split = android::base::Split(env_var, "=");
+    if (!env_split.empty() &&
+        Contains(interesting_env_names, env_split.front())) {
+      out << env_var << " ";
+    }
+  }
   return out << android::base::Join(command.command_, " ");
 }
 

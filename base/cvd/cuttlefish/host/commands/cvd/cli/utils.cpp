@@ -35,8 +35,9 @@
 
 namespace cuttlefish {
 
-Result<void> CheckProcessExitedNormally(siginfo_t infop) {
-  if (infop.si_code == CLD_EXITED && infop.si_status == 0) {
+Result<void> CheckProcessExitedNormally(siginfo_t infop,
+                                        int expected_exit_code) {
+  if (infop.si_code == CLD_EXITED && infop.si_status == expected_exit_code) {
     return {};
   }
 
@@ -96,9 +97,7 @@ Result<Command> ConstructCvdHelpCommand(
   auto android_host_out = CF_EXPECT(AndroidHostPath(envs));
   LOG(WARNING) << "TODO CJR cvd start utils ANDROID_HOST_OUT=" << android_host_out;
   const auto bin_path = android_host_out + "/bin/" + bin_file;
-  envs[kAndroidHostOut] = android_host_out;
   envs_copy[kAndroidHostOut] = android_host_out;
-  envs[kAndroidSoongHostOut] = android_host_out;
   envs_copy[kAndroidSoongHostOut] = android_host_out;
   ConstructCommandParam construct_cmd_param{.bin_path = bin_path,
                                             .home = home,
