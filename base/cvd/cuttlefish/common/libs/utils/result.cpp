@@ -44,13 +44,25 @@ StackTraceEntry::StackTraceEntry(std::string file, size_t line,
       function_(std::move(function)),
       expression_(std::move(expression)) {}
 
+StackTraceEntry::StackTraceEntry(std::string file, size_t line,
+                                 std::string pretty_function,
+                                 std::string function, std::string expression,
+                                 std::string help)
+    : file_(std::move(file)),
+      line_(line),
+      pretty_function_(std::move(pretty_function)),
+      function_(std::move(function)),
+      expression_(std::move(expression)),
+      help_(std::move(help)) {}
+
 StackTraceEntry::StackTraceEntry(const StackTraceEntry& other)
     : file_(other.file_),
       line_(other.line_),
       pretty_function_(other.pretty_function_),
       function_(other.function_),
       expression_(other.expression_),
-      message_(other.message_.str()) {}
+      message_(other.message_.str()),
+      help_(other.help_) {}
 
 StackTraceEntry& StackTraceEntry::operator=(const StackTraceEntry& other) {
   file_ = other.file_;
@@ -59,10 +71,13 @@ StackTraceEntry& StackTraceEntry::operator=(const StackTraceEntry& other) {
   function_ = other.function_;
   expression_ = other.expression_;
   message_.str(other.message_.str());
+  help_ = other.help_;
   return *this;
 }
 
 bool StackTraceEntry::HasMessage() const { return !message_.str().empty(); }
+
+std::string StackTraceEntry::Help() const { return help_; }
 
 /*
  * Print a single stack trace entry out of a list of format specifiers.

@@ -86,6 +86,10 @@ class StackTraceEntry {
   StackTraceEntry(std::string file, size_t line, std::string pretty_function,
                   std::string function, std::string expression);
 
+  StackTraceEntry(std::string file, size_t line, std::string pretty_function,
+                  std::string function, std::string expression,
+                  std::string help);
+
   StackTraceEntry(const StackTraceEntry& other);
 
   StackTraceEntry(StackTraceEntry&&) = default;
@@ -109,6 +113,8 @@ class StackTraceEntry {
 
   bool HasMessage() const;
 
+  std::string Help() const;
+
   /*
    * Print a single stack trace entry out of a list of format specifiers.
    * Some format specifiers [a,c,n] cause changes that affect all lines, while
@@ -127,12 +133,16 @@ class StackTraceEntry {
   std::string function_;
   std::string expression_;
   std::stringstream message_;
+  std::string help_;
 };
 
 std::string ResultErrorFormat(bool color);
 
-#define CF_STACK_TRACE_ENTRY(expression) \
-  StackTraceEntry(__FILE__, __LINE__, __PRETTY_FUNCTION__, __func__, expression)
+#define CF_STACK_TRACE_ENTRY2(expression, help)                      \
+  StackTraceEntry(__FILE__, __LINE__, __PRETTY_FUNCTION__, __func__, \
+                  expression, help)
+
+#define CF_STACK_TRACE_ENTRY(expression) CF_STACK_TRACE_ENTRY2(expression, "")
 
 }  // namespace cuttlefish
 
@@ -199,7 +209,15 @@ class StackTraceError {
   std::string Trace() const { return fmt::format(fmt::runtime("{:v}"), *this); }
 
   std::string FormatForEnv(bool color = (isatty(STDERR_FILENO) == 1)) const {
-    return fmt::format(fmt::runtime(ResultErrorFormat(color)), *this);
+    std::stringstream help_stream;
+    help_stream << "\n\nHelp text:\n";
+    for (const auto& entry : stack_) {
+      if (!entry.Help().empty()) {
+        help_stream << entry.Help() << "\n";
+      }
+    }
+    return fmt::format(fmt::runtime(ResultErrorFormat(color)), *this) +
+           help_stream.str();
   }
 
   template <typename T>
@@ -358,20 +376,22 @@ auto ErrorFromType(Result<T>&& value) {
   return value.error();
 }
 
-#define CF_EXPECT_OVERLOAD(_1, _2, NAME, ...) NAME
+#define CF_EXPECT_OVERLOAD(_1, _2, _3, NAME, ...) NAME
 
-#define CF_EXPECT2(RESULT, MSG)                               \
-  ({                                                          \
-    decltype(RESULT)&& macro_intermediate_result = RESULT;    \
-    if (!TypeIsSuccess(macro_intermediate_result)) {          \
-      auto current_entry = CF_STACK_TRACE_ENTRY(#RESULT);     \
-      current_entry << MSG;                                   \
-      auto error = ErrorFromType(macro_intermediate_result);  \
-      error.PushEntry(std::move(current_entry));              \
-      return std::move(error);                                \
-    };                                                        \
-    OutcomeDereference(std::move(macro_intermediate_result)); \
+#define CF_EXPECT3(RESULT, MSG, HELP)                            \
+  ({                                                             \
+    decltype(RESULT)&& macro_intermediate_result = RESULT;       \
+    if (!TypeIsSuccess(macro_intermediate_result)) {             \
+      auto current_entry = CF_STACK_TRACE_ENTRY2(#RESULT, HELP); \
+      current_entry << MSG;                                      \
+      auto error = ErrorFromType(macro_intermediate_result);     \
+      error.PushEntry(std::move(current_entry));                 \
+      return std::move(error);                                   \
+    };                                                           \
+    OutcomeDereference(std::move(macro_intermediate_result));    \
   })
+
+#define CF_EXPECT2(RESULT, MSG) CF_EXPECT3(RESULT, MSG, "")
 
 #define CF_EXPECT1(RESULT) CF_EXPECT2(RESULT, "")
 
@@ -411,11 +431,15 @@ auto ErrorFromType(Result<T>&& value) {
  *        in Result<std::string> CreatePopulatedTempDir()
  *        for CF_EXPECT(CreateTempDir())
  */
-#define CF_EXPECT(...) \
-  CF_EXPECT_OVERLOAD(__VA_ARGS__, CF_EXPECT2, CF_EXPECT1)(__VA_ARGS__)
+#define CF_EXPECT(...)                                    \
+  CF_EXPECT_OVERLOAD(__VA_ARGS__, CF_EXPECT3, CF_EXPECT2, \
+                     CF_EXPECT1)(__VA_ARGS__)
 
 #define CF_EXPECTF(RESULT, MSG, ...) \
   CF_EXPECT(RESULT, fmt::format(FMT_STRING(MSG), __VA_ARGS__))
+
+#define CF_EXPECT_HELPF(RESULT, MSG, HELP, ...) \
+  CF_EXPECT(RESULT, fmt::format(FMT_STRING(MSG), __VA_ARGS__), HELP)
 
 #define CF_COMPARE_EXPECT4(COMPARE_OP, LHS_RESULT, RHS_RESULT, MSG)         \
   ({                                                                        \

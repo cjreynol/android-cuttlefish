@@ -512,9 +512,12 @@ Result<void> CvdStartCommandHandler::Handle(const CommandRequest& request) {
 
   if (is_help) {
     auto android_host_out =
-        CF_EXPECT(AndroidHostPath(envs),
-                  "\nTry running this command from the same directory as the "
-                  "downloaded or fetched host tools.");
+        // TODO CJR: there should probably be a non-format version
+        CF_EXPECT_HELPF(
+            AndroidHostPath(envs), "No host path for finding {}",
+            "\nTry running this command from the same directory as the "
+            "downloaded or fetched host tools.",
+            "`cvd_internal_start`");
     const auto bin = CF_EXPECT(FindStartBin(android_host_out));
 
     Command command =
