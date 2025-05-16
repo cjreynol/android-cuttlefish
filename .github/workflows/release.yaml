@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  release:
+    # TODO CJR: or maybe I need to trigger on prerelease so we do it earlier?
+    # or maybe we should always make prereleases and let that work
+    types: [published]
+
+jobs:
+  build-debian-package:
+    uses: ./.github/workflows/build-debian-package.yaml
+  add-to-release:
+    # TODO CJR should create a PAT with highly limited permissions to make pushes
+    runs-on: ubuntu-22.04
+    needs: [build-debian-package]
+    steps:
+    - name: Download cuttlefish debs
+      uses: actions/download-artifact@v4
+      with:
+        name: debs
+        github-token: ${{ github.token }}
+  # TODO CJR
+  # checkout
+  # create tag
+  # create version-*-dev branch
+  # upload artifact to release
+  # maybe create the release?
+  # https://github.com/softprops/action-gh-release seemed to be able to populate notes like the Github feature
