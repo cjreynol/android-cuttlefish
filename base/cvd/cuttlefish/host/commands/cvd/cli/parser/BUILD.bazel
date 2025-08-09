@@ -24,6 +24,12 @@ cc_proto_library(
     deps = [":load_config_proto"],
 )
 
+java_proto_library(
+    name = "load_config_java_proto",
+    deps = [":load_config_proto"],
+    visibility = ["//visibility:public"],
+)
+
 cf_cc_library(
     name = "configs_common",
     srcs = ["cf_configs_common.cpp"],
