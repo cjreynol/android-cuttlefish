@@ -24,10 +24,8 @@
 namespace cuttlefish {
 
 struct DeviceBuild {
-  DeviceBuild(std::string id, std::string target,
-              std::optional<std::string> filepath);
-
   std::string id;
+  // TODO CJR add branch
   std::string target;
   std::string product;
   std::optional<std::string> filepath;
@@ -36,7 +34,6 @@ struct DeviceBuild {
 std::ostream& operator<<(std::ostream&, const DeviceBuild&);
 
 struct DirectoryBuild {
-  // TODO(schuffelen): Support local builds other than "eng"
   DirectoryBuild(std::vector<std::string> paths, std::string target,
                  std::optional<std::string> filepath);
 

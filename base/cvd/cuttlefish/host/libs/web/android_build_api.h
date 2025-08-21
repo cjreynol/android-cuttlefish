@@ -18,6 +18,7 @@
 #include <chrono>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_set>
 #include <vector>
@@ -62,14 +63,22 @@ class AndroidBuildApi : public BuildApi {
       const Build&, const std::string& artifact_name) override;
 
  private:
+  struct BuildInfo {
+    std::string branch;
+    std::string product;
+    std::string status;
+    std::string target;
+  };
+  Result<BuildInfo> GetBuildInfo(std::string_view build_id,
+                                 std::string_view target);
+  Result<void> BlockUntilTerminalStatus(std::string_view initial_status,
+                                        std::string_view build_id,
+                                        std::string_view target);
+
   Result<std::vector<std::string>> Headers();
 
   Result<std::optional<std::string>> LatestBuildId(const std::string& branch,
                                                    const std::string& target);
-
-  Result<std::string> BuildStatus(const DeviceBuild&);
-
-  Result<std::string> ProductName(const DeviceBuild&);
 
   Result<std::unordered_set<std::string>> Artifacts(
       const DeviceBuild& build,
@@ -110,6 +119,8 @@ class AndroidBuildApi : public BuildApi {
   Result<SeekableZipSource> FileReader(const DirectoryBuild&,
                                        const std::string& artifact_name);
 
+  // TODO CJR: update `http_client` and `credential_source` to have trailing
+  // underscore after their names.  I keep mixing them up as local vars
   HttpClient& http_client;
   CredentialSource* credential_source;
   AndroidBuildUrl* android_build_url_;

@@ -26,6 +26,7 @@
 #include <ostream>
 #include <set>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <tuple>
 #include <unordered_set>
@@ -86,38 +87,6 @@ Result<Json::Value> GetResponseJson(const HttpResponse<Json::Value>& response,
 
 }  // namespace
 
-DeviceBuild::DeviceBuild(std::string id, std::string target,
-                         std::optional<std::string> filepath)
-    : id(std::move(id)),
-      target(std::move(target)),
-      filepath(std::move(filepath)) {}
-
-std::ostream& operator<<(std::ostream& out, const DeviceBuild& build) {
-  return out << "(id=\"" << build.id << "\", target=\"" << build.target
-             << "\", filepath=\"" << build.filepath.value_or("") << "\")";
-}
-
-DirectoryBuild::DirectoryBuild(std::vector<std::string> paths,
-                               std::string target,
-                               std::optional<std::string> filepath)
-    : paths(std::move(paths)),
-      target(std::move(target)),
-      id("eng"),
-      filepath(std::move(filepath)) {
-  product = StringFromEnv("TARGET_PRODUCT", "");
-}
-
-std::ostream& operator<<(std::ostream& out, const DirectoryBuild& build) {
-  auto paths = android::base::Join(build.paths, ":");
-  return out << "(paths=\"" << paths << "\", target=\"" << build.target
-             << "\", filepath=\"" << build.filepath.value_or("") << "\")";
-}
-
-std::ostream& operator<<(std::ostream& out, const Build& build) {
-  std::visit([&out](auto&& arg) { out << arg; }, build);
-  return out;
-}
-
 AndroidBuildApi::AndroidBuildApi(HttpClient& http_client,
                                  CredentialSource* credential_source,
                                  AndroidBuildUrl* android_build_url,
@@ -130,32 +99,29 @@ AndroidBuildApi::AndroidBuildApi(HttpClient& http_client,
       cas_downloader_(cas_downloader) {}
 
 Result<Build> AndroidBuildApi::GetBuild(const DeviceBuildString& build_string) {
-  CF_EXPECT(build_string.target.has_value());
-  DeviceBuild proposed_build = DeviceBuild(
-      build_string.branch_or_id, *build_string.target, build_string.filepath);
-  auto latest_build_id =
+  CF_EXPECT(build_string.target.has_value(),
+            "build target must be provided with branch or id");
+  std::string proposed_build_id = build_string.branch_or_id;
+  std::optional<std::string> latest_build_id =
       CF_EXPECT(LatestBuildId(build_string.branch_or_id, *build_string.target));
   if (latest_build_id) {
-    proposed_build.id = *latest_build_id;
+    proposed_build_id = *latest_build_id;
     LOG(INFO) << "Latest build id for branch '" << build_string.branch_or_id
-              << "' and target '" << proposed_build.target << "' is '"
-              << proposed_build.id << "'";
-  }
+              << "' and target '" << *build_string.target << "' is '"
+              << proposed_build_id << "'";
+  }  // else proposed_build_id is a build ID or error during lookup
 
-  std::string status = CF_EXPECT(BuildStatus(proposed_build));
-  CF_EXPECT(!status.empty(),
-            proposed_build << " is not a valid branch or build id.");
-  LOG(DEBUG) << "Status for build " << proposed_build << " is " << status;
-  while (retry_period_ != std::chrono::seconds::zero() &&
-         !StatusIsTerminal(status)) {
-    LOG(DEBUG) << "Status is \"" << status << "\". Waiting for "
-              << retry_period_.count() << " seconds.";
-    std::this_thread::sleep_for(retry_period_);
-    status = CF_EXPECT(BuildStatus(proposed_build));
-  }
-  LOG(DEBUG) << "Status for build " << proposed_build << " is " << status;
-  proposed_build.product = CF_EXPECT(ProductName(proposed_build));
-  return proposed_build;
+  AndroidBuildApi::BuildInfo build_info =
+      CF_EXPECT(GetBuildInfo(proposed_build_id, *build_string.target));
+  CF_EXPECT(BlockUntilTerminalStatus(build_info.status, proposed_build_id,
+                                     build_info.target));
+  return DeviceBuild{
+      .id = proposed_build_id,
+      // TODO CJR: add branch to the `Build` objects, at least `DeviceBuild`
+      .target = build_info.target,
+      .product = build_info.product,
+      .filepath = build_string.filepath,
+  };
 }
 
 Result<Build> AndroidBuildApi::GetBuild(
@@ -219,6 +185,60 @@ Result<SeekableZipSource> AndroidBuildApi::FileReader(
   return CF_ERRF("Could not find '{}'", artifact_name);
 }
 
+Result<AndroidBuildApi::BuildInfo> AndroidBuildApi::GetBuildInfo(
+    std::string_view build_id, std::string_view target) {
+  const std::string url = android_build_url_->GetBuildUrl(build_id, target);
+  auto response =
+      CF_EXPECT(HttpGetToJson(http_client, url, CF_EXPECT(Headers())));
+
+  std::string no_auth_error_message;
+  if (credential_source == nullptr && response.http_code == 404) {
+    // In LatestBuildId we currently cannot distinguish between the cases:
+    //    - user provided a build ID (not an error)
+    //    - user provided a branch with a typo
+    //    - user provided a branch without the necessary authentication
+    //    (for example, internal branches)
+    // This message is a best attempt at helping the user in third case
+    no_auth_error_message =
+        "\n\nThis fetch was run unauthenticated, which could be the "
+        "problem.\nTry `cvd help login`";
+  }
+  Json::Value json = CF_EXPECT(
+      GetResponseJson(response),
+      "Error fetching build information for build:\n"
+          << "\n\nIf you specified a branch and it appears in the build id "
+             "field of this error, there was a problem retrieving the latest "
+             "build id.\n\nIs there a typo in the branch or target name?"
+          << no_auth_error_message);
+
+  return AndroidBuildApi::BuildInfo{
+      .branch = CF_EXPECT(GetValue<std::string>(json, {"branch"})),
+      .product = CF_EXPECT(GetValue<std::string>(json, {"target", "product"})),
+      .status = CF_EXPECT(GetValue<std::string>(json, {"buildAttemptStatus"})),
+      .target = CF_EXPECT(GetValue<std::string>(json, {"target", "name"})),
+  };
+}
+
+Result<void> AndroidBuildApi::BlockUntilTerminalStatus(
+    std::string_view initial_status, std::string_view build_id,
+    std::string_view target) {
+  const std::string url = android_build_url_->GetBuildUrl(build_id, target);
+
+  std::string status(initial_status);
+  while (retry_period_ != std::chrono::seconds::zero() &&
+         !StatusIsTerminal(status)) {
+    LOG(DEBUG) << "Status is \"" << status << "\". Waiting for "
+               << retry_period_.count() << " seconds and checking again.";
+    std::this_thread::sleep_for(retry_period_);
+    auto response =
+        CF_EXPECT(HttpGetToJson(http_client, url, CF_EXPECT(Headers())));
+    Json::Value json = CF_EXPECT(GetResponseJson(response),
+                                 "Error retrying build status retrieval");
+    status = CF_EXPECT(GetValue<std::string>(json, {"buildAttemptStatus"}));
+  }
+  return {};
+}
+
 Result<std::vector<std::string>> AndroidBuildApi::Headers() {
   std::vector<std::string> headers;
   if (credential_source) {
@@ -249,47 +269,6 @@ Result<std::optional<std::string>> AndroidBuildApi::LatestBuildId(
              "but found {}",
              branch, target, json["builds"].size());
   return CF_EXPECT(GetValue<std::string>(json["builds"][0], { "buildId" }));
-}
-
-Result<std::string> AndroidBuildApi::BuildStatus(const DeviceBuild& build) {
-  const std::string url =
-      android_build_url_->GetBuildStatusUrl(build.id, build.target);
-  auto response =
-      CF_EXPECT(HttpGetToJson(http_client, url, CF_EXPECT(Headers())));
-
-  std::string no_auth_error_message;
-  if (credential_source == nullptr && response.http_code == 404) {
-    // In LatestBuildId we currently cannot distinguish between the cases:
-    //    - user provided a build ID (not an error)
-    //    - user provided a branch with a typo
-    //    - user provided a branch without the necessary authentication
-    //    (for example, internal branches)
-    // This message is a best attempt at helping the user in third case
-    no_auth_error_message =
-        "\n\nThis fetch was run unauthenticated, which could be the "
-        "problem.\nTry `cvd help login`";
-  }
-  const Json::Value json = CF_EXPECT(
-      GetResponseJson(response),
-      "Error fetching build status for build:\n"
-          << build
-          << "\n\nIf you specified a branch and it appears in the build id "
-             "field of this error, there was a problem retrieving the latest "
-             "build id.\n\nIs there a typo in the branch or target name?"
-          << no_auth_error_message);
-
-  return CF_EXPECT(GetValue<std::string>(json, { "buildAttemptStatus" }));
-}
-
-Result<std::string> AndroidBuildApi::ProductName(const DeviceBuild& build) {
-  const std::string url =
-      android_build_url_->GetProductNameUrl(build.id, build.target);
-  auto response =
-      CF_EXPECT(HttpGetToJson(http_client, url, CF_EXPECT(Headers())));
-  const Json::Value json = CF_EXPECT(GetResponseJson(response),
-                                     "Error fetching product name for build:\n"
-                                         << build);
-  return CF_EXPECT(GetValue<std::string>(json, { "target", "product" }));
 }
 
 Result<std::unordered_set<std::string>> AndroidBuildApi::Artifacts(
