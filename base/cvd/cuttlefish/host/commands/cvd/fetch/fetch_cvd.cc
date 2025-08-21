@@ -635,12 +635,20 @@ Result<void> Fetch(const FetchFlags& flags, const HostToolsTarget& host_target,
     LOG(INFO) << "Completed target fetch to '" << target.directories.root
               << "' (" << count << " out of " << targets.size() << ")";
     count++;
+    // TODO CJR: gather up the `target.builds` information for a return object
   }
   LOG(DEBUG) << "Waiting for host package fetch";
   CF_EXPECT(host_package_future.get());
   LOG(DEBUG) << "Performance stats:\n" << tracer.ToStyledString();
 
   LOG(INFO) << "Completed all fetches";
+  // TODO CJR: return an object with build information and the location
+  //    of the `fetcher_config.json` and `fetch.log`
+  // will be easy enough to pipe that around during a `cvd load` call
+  //  though, maybe we would want/need to refactor to have access to the return
+  //  object directly, rather than needing to read output
+  // if we do CLI output, probably need a new flag to signal that behavior?
+  // to be used for guest version determination
   return {};
 }
 

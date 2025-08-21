@@ -63,6 +63,7 @@ Result<void> CvdFetchCommandHandler::Handle(const CommandRequest& request) {
   ScopedTeeLogger logger(
       LogToStderrAndFiles({log_file}, "", metadata_level, flags.verbosity));
 
+  // TODO CJR: return a value here, output the information to stdout
   Result<void> result = FetchCvdMain(flags);
   if (flags.build_api_flags.enable_caching) {
     LOG(DEBUG) << "Running automatic cache cleanup";
