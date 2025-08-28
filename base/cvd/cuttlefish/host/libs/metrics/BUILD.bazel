@@ -45,3 +45,18 @@ cf_cc_library(
         "//cuttlefish/common/libs/utils:result",
     ],
 )
+
+cf_cc_library(
+    name = "session_id",
+    srcs = [
+        "session_id.cc",
+    ],
+    hdrs = [
+        "session_id.h",
+    ],
+    deps = [
+        "//cuttlefish/common/libs/fs",
+        "//cuttlefish/common/libs/utils:files",
+        "//cuttlefish/common/libs/utils:result",
+    ],
+)
