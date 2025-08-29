@@ -108,3 +108,17 @@ cf_cc_library(
         "//cuttlefish/common/libs/utils:uuid",
     ],
 )
+
+cf_cc_library(
+    name = "flag_metrics",
+    srcs = [
+        "flag_metrics.cc",
+    ],
+    hdrs = [
+        "flag_metrics.h",
+    ],
+    deps = [
+        "//cuttlefish/common/libs/utils:result",
+        "//cuttlefish/common/libs/utils:flag_parser",
+    ],
+)
