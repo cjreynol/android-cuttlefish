@@ -48,6 +48,20 @@ cf_cc_library(
 )
 
 cf_cc_library(
+    name = "guest_metrics",
+    srcs = [
+        "guest_metrics.cc",
+    ],
+    hdrs = [
+        "guest_metrics.h",
+    ],
+    deps = [
+        "//cuttlefish/host/libs/config:vmm_mode",
+        "//cuttlefish/common/libs/utils:result",
+    ],
+)
+
+cf_cc_library(
     name = "host_metrics",
     srcs = [
         "host_metrics.cc",
