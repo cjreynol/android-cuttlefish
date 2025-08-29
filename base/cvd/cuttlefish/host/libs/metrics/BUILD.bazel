@@ -34,6 +34,20 @@ cf_cc_library(
 )
 
 cf_cc_library(
+    name = "flag_metrics",
+    srcs = [
+        "flag_metrics.cc",
+    ],
+    hdrs = [
+        "flag_metrics.h",
+    ],
+    deps = [
+        "//cuttlefish/common/libs/utils:result",
+        "//cuttlefish/common/libs/utils:flag_parser",
+    ],
+)
+
+cf_cc_library(
     name = "host_metrics",
     srcs = [
         "host_metrics.cc",
