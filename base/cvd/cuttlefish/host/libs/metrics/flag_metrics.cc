@@ -43,22 +43,13 @@ std::vector<Flag> GetLaunchFlagsVector(LaunchFlags& launch_flags) {
   flags.emplace_back(GflagsCompatFlag("cpus", launch_flags.cpus));
   flags.emplace_back(GflagsCompatFlag("daemon", launch_flags.daemon));
   flags.emplace_back(GflagsCompatFlag("data_policy", launch_flags.data_policy));
-  flags.emplace_back(
-      GflagsCompatFlag("decompress_kernel", launch_flags.decompress_kernel));
   flags.emplace_back(GflagsCompatFlag("dpi", launch_flags.dpi));
-  flags.emplace_back(GflagsCompatFlag("enable_tombstone_receiver",
-                                      launch_flags.enable_tombstone_receiver));
   flags.emplace_back(GflagsCompatFlag("extra_kernel_cmdline",
                                       launch_flags.extra_kernel_cmdline));
   flags.emplace_back(GflagsCompatFlag("gpu_mode", launch_flags.gpu_mode));
   flags.emplace_back(GflagsCompatFlag("guest_enforce_security",
                                       launch_flags.guest_enforce_security));
-  flags.emplace_back(GflagsCompatFlag("logcat_mode", launch_flags.logcat_mode));
-  flags.emplace_back(
-      GflagsCompatFlag("loop_max_part", launch_flags.loop_max_part));
   flags.emplace_back(GflagsCompatFlag("memory_mb", launch_flags.memory_mb));
-  flags.emplace_back(
-      GflagsCompatFlag("mobile_interface", launch_flags.mobile_interface));
   flags.emplace_back(
       GflagsCompatFlag("refresh_rate_hz", launch_flags.refresh_rate_hz));
   flags.emplace_back(GflagsCompatFlag("restart_subprocesses",
@@ -67,8 +58,6 @@ std::vector<Flag> GetLaunchFlagsVector(LaunchFlags& launch_flags) {
       GflagsCompatFlag("run_adb_connector", launch_flags.run_adb_connector));
   flags.emplace_back(
       GflagsCompatFlag("start_vnc_server", launch_flags.start_vnc_server));
-  flags.emplace_back(
-      GflagsCompatFlag("use_bootloader", launch_flags.use_bootloader));
   flags.emplace_back(GflagsCompatFlag("vm_manager", launch_flags.vm_manager));
   flags.emplace_back(GflagsCompatFlag("x_res", launch_flags.x_res));
   flags.emplace_back(GflagsCompatFlag("y_res", launch_flags.y_res));
