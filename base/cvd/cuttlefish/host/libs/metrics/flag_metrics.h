@@ -23,41 +23,48 @@
 
 namespace cuttlefish {
 
-struct ExistenceFlags {
-  bool system_image = false;
+struct InstanceExistenceFlags {
+  bool system_image_dir = false;
   bool boot_image = false;
   bool bootloader = false;
-  bool composite_disk = false;
   bool data_image = false;
   bool metadata_image = false;
-  bool qemu_binary = false;
   bool super_image = false;
   bool vendor_boot_image = false;
 };
 
-struct LaunchFlags {
+struct ExistenceFlags {
+  bool composite_disk = false;
+  bool crosvm_binary = false;
+  bool qemu_binary = false;
+  std::vector<InstanceExistenceFlags> instance_existence_flags;
+};
+
+struct GraphicsFlags {
+  std::string gpu_mode;
+  std::string dpi;
+  std::string x_res;
+  std::string y_res;
+  std::string refresh_rate_hz;
+};
+
+struct InstanceLaunchFlags {
+  GraphicsFlags graphics_flags;
   std::string adb_mode;
   std::string cpus;
   std::string daemon;
   std::string data_policy;
-  std::string decompress_kernel;
-  std::string dpi;
-  std::string enable_tombstone_receiver;
-  std::string extra_kernel_cmdline;
-  std::string gpu_mode;
   std::string guest_enforce_security;
-  std::string logcat_mode;
-  std::string loop_max_part;
   std::string memory_mb;
-  std::string mobile_interface;
-  std::string refresh_rate_hz;
   std::string restart_subprocesses;
   std::string run_adb_connector;
   std::string start_vnc_server;
-  std::string use_bootloader;
   std::string vm_manager;
-  std::string x_res;
-  std::string y_res;
+};
+
+struct LaunchFlags {
+  std::string extra_kernel_cmdline;
+  std::vector<InstanceLaunchFlags> instance_launch_flags;
 };
 
 struct FlagMetrics {

@@ -122,3 +122,17 @@ cf_cc_library(
         "//cuttlefish/common/libs/utils:flag_parser",
     ],
 )
+cf_cc_library(
+    name = "guest_metrics",
+    srcs = [
+        "guest_metrics.cc",
+    ],
+    hdrs = [
+        "guest_metrics.h",
+    ],
+    deps = [
+        "//cuttlefish/common/libs/utils:result",
+        "//cuttlefish/host/commands/assemble_cvd:boot_image_utils",
+        "//cuttlefish/host/libs/config:vmm_mode",
+    ],
+)
