@@ -51,6 +51,7 @@
 #include "cuttlefish/host/commands/assemble_cvd/flags/android_efi_loader.h"
 #include "cuttlefish/host/commands/assemble_cvd/flags/boot_image.h"
 #include "cuttlefish/host/commands/assemble_cvd/flags/bootloader.h"
+#include "cuttlefish/host/commands/assemble_cvd/flags/data_policy.h"
 #include "cuttlefish/host/commands/assemble_cvd/flags/display_proto.h"
 #include "cuttlefish/host/commands/assemble_cvd/flags/initramfs_path.h"
 #include "cuttlefish/host/commands/assemble_cvd/flags/kernel_path.h"
@@ -613,8 +614,8 @@ Result<CuttlefishConfig> InitializeCuttlefishConfiguration(
       CF_EXPECT(GET_FLAG_STR_VALUE(gem5_binary_dir));
   std::vector<std::string> gem5_checkpoint_dir_vec =
       CF_EXPECT(GET_FLAG_STR_VALUE(gem5_checkpoint_dir));
-  std::vector<std::string> data_policy_vec =
-      CF_EXPECT(GET_FLAG_STR_VALUE(data_policy));
+  DataPolicyFlag data_policy_values =
+      CF_EXPECT(DataPolicyFlag::FromGlobalGflags());
 
   // multi-virtual-device multi-display proto input
   DisplaysProtoFlag instances_display_configs =
@@ -999,7 +1000,7 @@ Result<CuttlefishConfig> InitializeCuttlefishConfiguration(
     instance.set_camera_server_port(camera_server_port_vec[instance_index]);
     instance.set_gem5_binary_dir(gem5_binary_dir_vec[instance_index]);
     instance.set_gem5_checkpoint_dir(gem5_checkpoint_dir_vec[instance_index]);
-    instance.set_data_policy(data_policy_vec[instance_index]);
+    instance.set_data_policy(data_policy_values.ForIndex(instance_index));
 
     instance.set_mobile_bridge_name(StrForInstance("cvd-mbr-", num));
     instance.set_wifi_bridge_name("cvd-wbr");
