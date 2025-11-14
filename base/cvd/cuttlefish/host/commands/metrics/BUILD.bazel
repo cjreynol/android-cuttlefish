@@ -59,6 +59,21 @@ cf_cc_binary(
     ],
 )
 
+cf_cc_binary(
+    name = "metrics_transmitter",
+    srcs = [
+        "metrics_transmitter.cc",
+    ],
+    deps [
+        "//cuttlefish/common/libs/utils:result",
+        "//cuttlefish/host/libs/web/http_client",
+        "//cuttlefish/host/libs/web/http_client:curl_global_init",
+        "//cuttlefish/host/libs/web/http_client:curl_http_client",
+        "//cuttlefish/host/libs/web/http_client:http_string",
+        "//external_proto:clientanalytics_cc_proto",
+    ],
+)
+
 cf_cc_library(
     name = "send",
     srcs = ["send.cc"],
