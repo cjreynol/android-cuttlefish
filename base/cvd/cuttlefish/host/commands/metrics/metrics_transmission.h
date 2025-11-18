@@ -17,17 +17,10 @@
 #pragma once
 
 #include "cuttlefish/common/libs/utils/result.h"
+#include "cuttlefish/host/libs/metrics/metrics_environment.h"
 #include "external_proto/clientanalytics.pb.h"
 
 namespace cuttlefish {
-
-enum class ClearcutEnvironment {
-  Local,
-  Staging,
-  Prod,
-};
-
-std::string EnvironmentToString(ClearcutEnvironment environment);
 
 Result<void> TransmitMetricsEvent(
     const wireless_android_play_playlog::LogRequest& log_request,

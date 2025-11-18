@@ -16,18 +16,13 @@
 
 #pragma once
 
-#include <string>
-
 #include "cuttlefish/common/libs/utils/result.h"
-#include "cuttlefish/host/libs/metrics/metrics_environment.h"
+#include "external_proto/cf_log.pb.h"
 
 namespace cuttlefish {
 
-struct MetricsFlags {
-  ClearcutEnvironment environment = ClearcutEnvironment::Production;
-  std::string serialized_proto;
-};
-
-Result<MetricsFlags> ProcessFlags(int argc, char** argv);
+Result<void> TransmitMetrics(
+    const logs::proto::wireless::android::cuttlefish::CuttlefishLogEvent&
+        cf_log_event);
 
 }  // namespace cuttlefish
