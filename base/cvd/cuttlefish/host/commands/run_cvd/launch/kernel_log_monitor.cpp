@@ -47,16 +47,10 @@ namespace {
 
 class KernelLogMonitor : public CommandSource,
                          public KernelLogPipeProvider,
-                         public DiagnosticInformation,
                          public LateInjected {
  public:
   INJECT(KernelLogMonitor(const CuttlefishConfig::InstanceSpecific& instance))
       : instance_(instance) {}
-
-  // DiagnosticInformation
-  std::vector<std::string> Diagnostics() const override {
-    return {"Kernel log: " + instance_.PerInstancePath("kernel.log")};
-  }
 
   Result<void> LateInject(fruit::Injector<>& injector) override {
     number_of_event_pipes_ =
@@ -133,7 +127,6 @@ KernelLogMonitorComponent() {
       .bind<KernelLogPipeProvider, KernelLogMonitor>()
       .addMultibinding<CommandSource, KernelLogMonitor>()
       .addMultibinding<SetupFeature, KernelLogMonitor>()
-      .addMultibinding<DiagnosticInformation, KernelLogMonitor>()
       .addMultibinding<LateInjected, KernelLogMonitor>();
 }
 
