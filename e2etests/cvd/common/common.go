@@ -200,10 +200,6 @@ func (tc *TestContext) CVDFetch(args FetchArgs) error {
 
 // Performs `cvd create <args>`.
 func (tc *TestContext) CVDCreate(args CreateArgs) error {
-	tempdirEnv := map[string]string{
-		"HOME": tc.tempdir,
-	}
-
 	createCmd := []string{tc.TargetBin(), "--verbosity=DEBUG", "create"}
 	createCmd = append(createCmd, "--report_anonymous_usage_stats=y")
 	createCmd = append(createCmd, "--undefok=report_anonymous_usage_stats")
@@ -213,7 +209,7 @@ func (tc *TestContext) CVDCreate(args CreateArgs) error {
 	if len(args.Args) > 0 {
 		createCmd = append(createCmd, args.Args...)
 	}
-	if _, err := tc.RunCmdWithEnv(createCmd, tempdirEnv); err != nil {
+	if _, err := tc.RunCmd(createCmd...); err != nil {
 		log.Printf("Failed to create instance(s): %w", err)
 		return err
 	}
@@ -224,12 +220,8 @@ func (tc *TestContext) CVDCreate(args CreateArgs) error {
 
 // Performs `cvd stop`.
 func (tc *TestContext) CVDStop() error {
-	tempdirEnv := map[string]string{
-		"HOME": tc.tempdir,
-	}
-
 	stopCmd := []string{tc.TargetBin(), "stop"}
-	if _, err := tc.RunCmdWithEnv(stopCmd, tempdirEnv); err != nil {
+	if _, err := tc.RunCmd(stopCmd...); err != nil {
 		log.Printf("Failed to stop instance(s): %w", err)
 		return err
 	}
@@ -239,17 +231,13 @@ func (tc *TestContext) CVDStop() error {
 
 // Performs `HOME=<testdir> bin/launch_cvd <args>`.
 func (tc *TestContext) LaunchCVD(args CreateArgs) error {
-	tempdirEnv := map[string]string{
-		"HOME": tc.tempdir,
-	}
-
 	createCmd := []string{"bin/launch_cvd", "--daemon"}
 	createCmd = append(createCmd, "--report_anonymous_usage_stats=y")
 	createCmd = append(createCmd, "--undefok=report_anonymous_usage_stats")
 	if len(args.Args) > 0 {
 		createCmd = append(createCmd, args.Args...)
 	}
-	if _, err := tc.RunCmdWithEnv(createCmd, tempdirEnv); err != nil {
+	if _, err := tc.RunCmd(createCmd...); err != nil {
 		log.Printf("Failed to create instance(s): %w", err)
 		return err
 	}
@@ -260,12 +248,8 @@ func (tc *TestContext) LaunchCVD(args CreateArgs) error {
 
 // Performs `HOME=<testdir> bin/stop_cvd`.
 func (tc *TestContext) StopCVD() error {
-	tempdirEnv := map[string]string{
-		"HOME": tc.tempdir,
-	}
-
 	stopCmd := []string{"bin/stop_cvd"}
-	if _, err := tc.RunCmdWithEnv(stopCmd, tempdirEnv); err != nil {
+	if _, err := tc.RunCmd(stopCmd...); err != nil {
 		log.Printf("Failed to stop instance(s): %w", err)
 		return err
 	}
@@ -275,12 +259,8 @@ func (tc *TestContext) StopCVD() error {
 
 // Performs `cvd powerwash`.
 func (tc *TestContext) CVDPowerwash() error {
-	tempdirEnv := map[string]string{
-		"HOME": tc.tempdir,
-	}
-
 	createCmd := []string{tc.TargetBin(), "powerwash"}
-	if _, err := tc.RunCmdWithEnv(createCmd, tempdirEnv); err != nil {
+	if _, err := tc.RunCmd(createCmd...); err != nil {
 		log.Printf("Failed to powerwash instance(s): %w", err)
 		return err
 	}
@@ -344,6 +324,27 @@ func (tc *TestContext) GetMetricsDir() (string, error) {
 	return metricsdir, nil
 }
 
+func (tc *TestContext) GetCvdHomeDir() (string, error) {
+	res, err := tc.RunCmd("cvd", "fleet")
+	if err != nil {
+		return "", fmt.Errorf("failed to run `cvd fleet`: %w", err)
+	}
+
+	re := regexp.MustCompile(`"assembly_dir" : "(.*)/cuttlefish/assembly"`)
+	matches := re.FindStringSubmatch(res.Stdout)
+	if len(matches) == 2 {
+		return matches[1], nil
+	}
+
+	reLegacy := regexp.MustCompile(`"assembly_dir" : "(.*)/cuttlefish_assembly"`)
+	matches = reLegacy.FindStringSubmatch(res.Stdout)
+	if len(matches) == 2 {
+		return matches[1], nil
+	}
+
+	return "", fmt.Errorf("failed to find assembly directory in fleet output: %s", res.Stdout)
+}
+
 func (tc *TestContext) GetSyspropString(key string) (string, error) {
 	res, err := tc.RunCmd("adb", "shell", "getprop", key)
 	if err != nil {
@@ -372,6 +373,7 @@ func (tc *TestContext) SetUp(t *testing.T) {
 
 	log.Printf("Chdir to %s", tc.tempdir)
 	tc.t.Chdir(tc.tempdir)
+	tc.t.Setenv("HOME", tc.tempdir)
 
 	marker := os.Getenv("LOCAL_DEBIAN_SUBSTITUTION_MARKER_FILE")
 	if marker != "" {
@@ -436,13 +438,22 @@ func (tc *TestContext) TearDown() {
 		if err == nil {
 			log.Printf("Copying logs to test output directory...")
 
+			logbase := tc.tempdir
+			cvdHome, err := tc.GetCvdHomeDir()
+			if err == nil {
+				log.Printf("Found CVD home directory: %s", cvdHome)
+				logbase = cvdHome
+			} else {
+				log.Printf("Failed to find CVD home directory, falling back to tempdir: %s", err)
+			}
+
 			patterns := [...]string{
 				"cuttlefish_runtime/cuttlefish_config.json",
 				"cuttlefish_runtime/logcat",
 				"cuttlefish_runtime/*.log",
 			}
 			for _, pattern := range patterns {
-				matches, err := filepath.Glob(path.Join(tc.tempdir, pattern))
+				matches, err := filepath.Glob(path.Join(logbase, pattern))
 				if err == nil {
 					for _, file := range matches {
 						_, err := tc.RunCmd("cp", "--dereference", file, testoutdir)
@@ -455,7 +466,7 @@ func (tc *TestContext) TearDown() {
 				}
 			}
 
-			matches, err := filepath.Glob(path.Join(tc.tempdir, "cuttlefish/instances/*"))
+			matches, err := filepath.Glob(path.Join(logbase, "cuttlefish/instances/*"))
 			if err == nil {
 				for _, instancedir := range matches {
 					instance := filepath.Base(instancedir)
