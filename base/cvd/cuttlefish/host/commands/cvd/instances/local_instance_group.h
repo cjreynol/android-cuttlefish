@@ -91,6 +91,8 @@ class LocalInstanceGroup {
   // respond for at most timeout seconds for each instance.
   Result<Json::Value> FetchStatus(
       std::chrono::seconds timeout = std::chrono::seconds(5));
+  Result<Json::Value> FetchTrimmedStatus(
+      std::chrono::seconds timeout = std::chrono::seconds(5));
 
  private:
   friend class InstanceDatabase;

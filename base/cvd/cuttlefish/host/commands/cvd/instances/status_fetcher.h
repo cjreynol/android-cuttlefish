@@ -29,5 +29,7 @@ namespace cuttlefish {
 // respond within the given timeout.
 Result<Json::Value> FetchInstanceStatus(LocalInstance& instance,
                                         std::chrono::seconds timeout);
+Result<Json::Value> FetchTrimmedInstanceStatus(
+    const LocalInstance& instance, const std::chrono::seconds timeout);
 
 }  // namespace cuttlefish

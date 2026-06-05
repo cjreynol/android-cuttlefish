@@ -194,4 +194,20 @@ Result<Json::Value> FetchInstanceStatus(LocalInstance& instance,
   return instance_status_json;
 }
 
+Result<Json::Value> FetchTrimmedInstanceStatus(
+    const LocalInstance& instance, const std::chrono::seconds timeout) {
+  const CuttlefishConfig* config =
+      CF_EXPECT(CuttlefishConfig::Get(), "Failed to obtain config object");
+  const InstanceSpecific instance_config =
+      config->ForInstanceName(instance.Id());
+  SharedFD monitor_socket =
+      CF_EXPECT(GetLauncherMonitorFromInstance(instance_config, timeout));
+  CF_EXPECT(
+      RunLauncherAction(monitor_socket, LauncherAction::kStatus, timeout));
+  Json::Value instance_info(Json::arrayValue);
+  // TODO CJR: how to access PopulateDevicesInfoFromInstance?
+  //  do I make the status code a library?
+  return {};
+}
+
 }  // namespace cuttlefish

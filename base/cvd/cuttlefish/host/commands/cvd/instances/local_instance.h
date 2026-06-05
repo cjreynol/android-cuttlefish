@@ -63,6 +63,8 @@ class LocalInstance {
   // at most timeout seconds.
   Result<Json::Value> FetchStatus(
       std::chrono::seconds timeout = std::chrono::seconds(5));
+  Result<Json::Value> FetchTrimmedStatus(
+      std::chrono::seconds timeout = std::chrono::seconds(5));
 
   Result<void> PressPowerBtn();
   Result<void> PressPowerBtnLegacy();

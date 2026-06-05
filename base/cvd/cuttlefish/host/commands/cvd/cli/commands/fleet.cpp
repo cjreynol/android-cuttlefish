@@ -24,6 +24,7 @@
 #include <json/value.h>
 
 #include "cuttlefish/flag_parser/flag.h"
+#include "cuttlefish/flag_parser/gflags_compat.h"
 #include "cuttlefish/host/commands/cvd/cli/command_request.h"
 #include "cuttlefish/host/commands/cvd/cli/commands/command_handler.h"
 #include "cuttlefish/host/commands/cvd/cli/types.h"
@@ -44,11 +45,14 @@ usage: cvd fleet [--help]
   cvd fleet will list the active devices with information.
 )";
 
-Result<void> ProcessArguments(std::vector<std::string> subcommand_arguments) {
+Result<bool> ProcessArguments(std::vector<std::string> subcommand_arguments) {
+  bool trimmed;
   std::vector<Flag> flags;
+  flags.emplace_back(
+      GflagsCompatFlag("trimmed", trimmed).Help("Trim to a minimum output."));
   flags.emplace_back(UnexpectedArgumentGuard());
   CF_EXPECT(ConsumeFlags(flags, subcommand_arguments));
-  return {};
+  return trimmed;
 }
 
 }  // namespace
@@ -71,11 +75,16 @@ Result<std::string> CvdFleetCommandHandler::DetailedHelp(
 }
 
 Result<void> CvdFleetCommandHandler::Handle(const CommandRequest& request) {
-  CF_EXPECT(ProcessArguments(request.SubcommandArguments()));
+  const bool trimmed =
+      CF_EXPECT(ProcessArguments(request.SubcommandArguments()));
   auto all_groups = CF_EXPECT(instance_manager_.FindGroups({}));
   Json::Value groups_json(Json::arrayValue);
   for (auto& group : all_groups) {
-    groups_json.append(CF_EXPECT(group.FetchStatus()));
+    if (trimmed) {
+      groups_json.append(CF_EXPECT(group.FetchTrimmedStatus()));
+    } else {
+      groups_json.append(CF_EXPECT(group.FetchStatus()));
+    }
   }
   Json::Value output_json(Json::objectValue);
   output_json["groups"] = groups_json;

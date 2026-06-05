@@ -113,6 +113,11 @@ Result<Json::Value> LocalInstance::FetchStatus(std::chrono::seconds timeout) {
   return CF_EXPECT(FetchInstanceStatus(*this, timeout));
 }
 
+Result<Json::Value> LocalInstance::FetchTrimmedStatus(
+    std::chrono::seconds timeout) {
+  return CF_EXPECT(FetchTrimmedInstanceStatus(*this, timeout));
+}
+
 Result<void> LocalInstance::PressPowerBtn() {
   auto bin_check = HostToolTarget(HostArtifactsPath()).GetPowerBtnBinPath();
   if (bin_check.ok()) {
