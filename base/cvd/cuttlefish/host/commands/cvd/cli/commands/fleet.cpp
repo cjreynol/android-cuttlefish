@@ -44,6 +44,13 @@ usage: cvd fleet [--help]
   cvd fleet will list the active devices with information.
 )";
 
+Result<void> ProcessArguments(std::vector<std::string> subcommand_arguments) {
+  std::vector<Flag> flags;
+  flags.emplace_back(UnexpectedArgumentGuard());
+  CF_EXPECT(ConsumeFlags(flags, subcommand_arguments));
+  return {};
+}
+
 }  // namespace
 
 CvdFleetCommandHandler::CvdFleetCommandHandler(
@@ -64,9 +71,7 @@ Result<std::string> CvdFleetCommandHandler::DetailedHelp(
 }
 
 Result<void> CvdFleetCommandHandler::Handle(const CommandRequest& request) {
-  std::vector<std::string> args = request.SubcommandArguments();
-  CF_EXPECT(ConsumeFlags({UnexpectedArgumentGuard()}, args));
-
+  CF_EXPECT(ProcessArguments(request.SubcommandArguments()));
   auto all_groups = CF_EXPECT(instance_manager_.FindGroups({}));
   Json::Value groups_json(Json::arrayValue);
   for (auto& group : all_groups) {
