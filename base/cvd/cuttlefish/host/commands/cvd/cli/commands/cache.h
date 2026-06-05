@@ -19,13 +19,12 @@
 #include <memory>
 #include <string>
 
+#include "cuttlefish/host/commands/cvd/cli/command_request.h"
 #include "cuttlefish/host/commands/cvd/cli/commands/command_handler.h"
 #include "cuttlefish/host/commands/cvd/cli/types.h"
 #include "cuttlefish/result/result.h"
 
 namespace cuttlefish {
-
-class CommandRequest;
 
 class CvdCacheCommandHandler : public CvdCommandHandler {
  public:
