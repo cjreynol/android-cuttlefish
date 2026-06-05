@@ -31,17 +31,20 @@
 #include "cuttlefish/result/result.h"
 
 namespace cuttlefish {
+namespace {
 
 constexpr char kFleetSubcmd[] = "fleet";
 
 constexpr char kSummaryHelpText[] =
     R"(lists active devices with relevant information)";
 
-static constexpr char kHelpMessage[] = R"(
+constexpr char kHelpMessage[] = R"(
 usage: cvd fleet [--help]
 
   cvd fleet will list the active devices with information.
 )";
+
+}  // namespace
 
 CvdFleetCommandHandler::CvdFleetCommandHandler(
     InstanceManager& instance_manager)
