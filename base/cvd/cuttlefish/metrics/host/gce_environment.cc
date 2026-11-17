@@ -19,6 +19,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/strings/str_split.h"
@@ -85,6 +86,10 @@ Result<std::string> GetZoneValue(absl::string_view response_string) {
   return components[3];
 }
 
+std::string HashProjectId(std::string_view project_id) {
+  return std::string(project_id);
+}
+
 }  // namespace
 
 Result<std::optional<GceEnvironment>> DetectGceEnvironment() {
@@ -95,11 +100,13 @@ Result<std::optional<GceEnvironment>> DetectGceEnvironment() {
   }
   const std::string zone_response =
       CF_EXPECT(QueryGceMetadata(*http_client, kZone));
-  return GceEnvironment{
+  auto result = GceEnvironment{
       .numeric_project_id =
           CF_EXPECT(QueryGceMetadata(*http_client, kNumericProjectId)),
       .zone = CF_EXPECT(GetZoneValue(zone_response)),
   };
+  result.hashed_numeric_project_id = HashProjectId(result.numeric_project_id);
+  return result;
 }
 
 }  // namespace cuttlefish

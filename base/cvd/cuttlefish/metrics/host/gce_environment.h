@@ -26,6 +26,7 @@ namespace cuttlefish {
 struct GceEnvironment {
   std::string numeric_project_id;
   std::string zone;
+  std::string hashed_numeric_project_id;
 };
 
 Result<std::optional<GceEnvironment>> DetectGceEnvironment();
